@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galaxia Hot Wheels 3D HD Interactivad</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #010206;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #webgl-canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #welcome-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      background: radial-gradient(circle at center, #0B192C 0%, #010206 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: opacity 1.2s ease, visibility 1.2s ease;
+    }
+
+    .card-container {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 35px rgba(0, 210, 255, 0.25);
+      backdrop-filter: blur(15px);
+      animation: fadeInCard 1.2s ease-out;
+    }
+
+    .tulip-icon {
+      font-size: 3.8rem;
+      margin-bottom: 15px;
+      filter: drop-shadow(0 0 15px #38bdf8);
+      animation: floatTulip 3s ease-in-out infinite alternate;
+    }
+
+    .card-title {
+      font-size: 1.8rem;
+      color: #ffffff;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+
+    .card-letter {
+      color: #93c5fd;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border: 1px solid #38bdf8;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-start:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.8);
+    }
+
+    .ui-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.85rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      backdrop-filter: blur(5px);
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+
+    @keyframes fadeInCard {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatTulip {
+      from { transform: translateY(-5px); }
+      to { transform: translateY(5px); }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <div id="welcome-screen">
+    <div class="card-container">
+      <div class="tulip-icon">🌷</div>
+      <h2 class="card-title">Paraa julii</h2>
+      <p class="card-letter">
+        preciona para continuar esta galaxia es para recordarte lo linda y buena amiga que eres💙¡TQM.
+      </p>
+      <button class="btn-start" onclick="enterGalaxy()">Presione para continuar ✨</button>
+    </div>
+  </div>
+
+  <canvas id="webgl-canvas"></canvas>
+  <div class="ui-controls" id="ui-controls">🖱️ Arrastra para rotar | Usa la rueda del mouse para hacer ZOOM HD 🔍</div>
+
+  <script>
+   function enterGalaxy() {
+  const welcome = document.getElementById('welcome-screen');
+  const uiControls = document.getElementById('ui-controls');
+  const gallery = document.getElementById('hotwheels-gallery');
+
+  welcome.style.opacity = '0';
+  welcome.style.visibility = 'hidden';
+  uiControls.style.opacity = '1';
+  gallery.style.display = 'flex';
+}
+
+    // 1. Escena, Cámara y Renderer 3D HD
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x010206, 0.0008);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 180, 420);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Iluminación para generar reflejos en el cristal y brillo neón
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+
+    // Luz especular superior para reflejos sobre la esfera de cristal
+    const dirLight = new THREE.DirectionalLight(0x00f0ff, 2.5);
+    dirLight.position.set(100, 200, 150);
+    scene.add(dirLight);
+
+    // Luz interior azúl brillante desde el centro del corazón
+    const heartGlowLight = new THREE.PointLight(0x00d2ff, 5, 250);
+    heartGlowLight.position.set(0, 0, 0);
+    scene.add(heartGlowLight);
+
+    // 2. Controles de Cámara
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 900;
+    controls.minDistance = 30;
+
+    // 3. Galaxia Espiral
+    const galaxyGroup = new THREE.Group();
+    scene.add(galaxyGroup);
+
+    const particleCount = 12000;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+
+    const colorCore = new THREE.Color('#00f0ff');
+    const colorArm = new THREE.Color('#0055ff');
+    const colorOuter = new THREE.Color('#ffffff');
+
+    for (let i = 0; i < particleCount; i++) {
+      const r = Math.pow(Math.random(), 2) * 450 + 20;
+      const arms = 3;
+      const theta = (i % arms) * ((2 * Math.PI) / arms) + r * 0.012 + (Math.random() - 0.5) * 0.4;
+
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+      const y = (Math.random() - 0.5) * (40 * (1 - r / 500));
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      let mixedColor = colorCore.clone();
+      if (r < 100) {
+        mixedColor.lerp(colorArm, r / 100);
+      } else {
+        mixedColor.lerp(colorOuter, (r - 100) / 350);
+      }
+
+      colors[i * 3] = mixedColor.r;
+      colors[i * 3 + 1] = mixedColor.g;
+      colors[i * 3 + 2] = mixedColor.b;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 2.2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+
+    const starField = new THREE.Points(geometry, material);
+    galaxyGroup.add(starField);
+
+    // 4. CENTRO GALÁCTICO: BOLA DE CRISTAL CON REFLEJO Y CORAZÓN AZUL DERECHO Y LUMINOSO
+    const centerGroup = new THREE.Group();
+    galaxyGroup.add(centerGroup);
+
+    // A) Corazón 3D Azul Neón (Construido al derecho)
+    const heartShape = new THREE.Shape();
+    // Trazado del corazón en dirección estándar
+    heartShape.moveTo(0, 5);
+    heartShape.bezierCurveTo(0, 8, -4, 13, -10, 13);
+    heartShape.bezierCurveTo(-17, 13, -17, 5, -17, 2);
+    heartShape.bezierCurveTo(-17, -5, -11, -12, 0, -18);
+    heartShape.bezierCurveTo(11, -12, 17, -5, 17, 2);
+    heartShape.bezierCurveTo(17, 5, 17, 13, 10, 13);
+    heartShape.bezierCurveTo(4, 13, 0, 8, 0, 5);
+
+    const extrudeSettings = { depth: 6, bevelEnabled: true, bevelSegments: 5, steps: 2, bevelSize: 2, bevelThickness: 2 };
+    const heartGeo = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+    heartGeo.center();
+
+    // Material Azul Neón auto-iluminado con brillo intenso
+    const heartMat = new THREE.MeshStandardMaterial({ 
+      color: 0x00f0ff,
+      emissive: 0x00a8ff,
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+      metalness: 0.8
+    });
+    const blueHeart3D = new THREE.Mesh(heartGeo, heartMat);
+    blueHeart3D.scale.set(0.95, 0.95, 0.95);
+    centerGroup.add(blueHeart3D);
+
+    // B) Esfera de Cristal con Reflejo y Refracción
+    const glassGeo = new THREE.SphereGeometry(28, 64, 64);
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      emissive: 0x003366,
+      emissiveIntensity: 0.15,
+      transparent: true,
+      opacity: 1.50,
+      roughness: 0.05,
+      metalness: 0.1,
+      transmission: 0.92,  // Efecto vidrio transparente
+      ior: 1.4,           // Refracción del cristal
+      reflectivity: 0.9,  // Reflejo exterior brillante
+      clearcoat: 1.0,     // Capa de brillo tipo cristal pulido
+      clearcoatRoughness: 0.05
+    });
+    const glassSaturn = new THREE.Mesh(glassGeo, glassMat);
+    centerGroup.add(glassSaturn);
+
+    // C) Anillos de Saturno estilo CristalNeón
+    const ringGeo = new THREE.RingGeometry(34, 52, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ 
+      color: 0x00f0ff, 
+      side: THREE.DoubleSide, 
+      transparent: true, 
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending 
+    });
+    const saturnRing = new THREE.Mesh(ringGeo, ringMat);
+    saturnRing.rotation.x = Math.PI / 2.3;
+    centerGroup.add(saturnRing);
+
+    // 5. Hot Wheels
+    const carURLs = [
+      'https://pngimg.com/uploads/porsche/porsche_PNG10622.png',
+      'https://pngimg.com/uploads/lamborghini/lamborghini_PNG10709.png',
+      'https://pngimg.com/uploads/ferrari/ferrari_PNG10680.png',
+      'https://pngimg.com/uploads/bugatti/bugatti_PNG23.png'
+    ];
+
+    const textureLoader = new THREE.TextureLoader();
+    const carGroup = new THREE.Group();
+    galaxyGroup.add(carGroup);
+
+    const carCount = 28;
+    for (let i = 0; i < carCount; i++) {
+      const url = carURLs[i % carURLs.length];
+      const map = textureLoader.load(url);
+      const spriteMaterial = new THREE.SpriteMaterial({ map: map, transparent: true, depthTest: true });
+      const sprite = new THREE.Sprite(spriteMaterial);
+
+      const radius = Math.random() * 320 + 90;
+      const angle = Math.random() * Math.PI * 2;
+
+      sprite.position.x = Math.cos(angle) * radius;
+      sprite.position.z = Math.sin(angle) * radius;
+      sprite.position.y = (Math.random() - 0.5) * 30;
+
+      sprite.scale.set(38, 22, 1);
+      carGroup.add(sprite);
+    }
+
+    // 6. Texto Canvas HD Flotante
+    const phrases = [
+      "Eres únicaa", "Eres increíble", "Me alegra conocerte y que seas mi amiga 💗", 
+      "Gracias por estar", "te quiero mucho", "gracias por tenerme en cuentaaaaa", 
+      "Eres especialy mucho para mi ", "amiga lindaaaa", "no te olvides de mi"
+    ];
+
+    function createTextSprite(message) {
+      const canvasText = document.createElement('canvas');
+      const ctxText = canvasText.getContext('2d');
+      canvasText.width = 1024;
+      canvasText.height = 128;
+
+      ctxText.font = "Bold 38px 'Segoe UI', Arial, sans-serif";
+      ctxText.fillStyle = "#ffffff";
+      ctxText.shadowColor = "#00d2ff";
+      ctxText.shadowBlur = 16;
+      ctxText.textAlign = "center";
+      ctxText.fillText(message, 512, 70);
+
+      const texture = new THREE.CanvasTexture(canvasText);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true });
+      const textSprite = new THREE.Sprite(spriteMat);
+      textSprite.scale.set(45, 12, 1);
+      return textSprite;
+    }
+
+    const textGroup = new THREE.Group();
+    galaxyGroup.add(textGroup);
+
+    phrases.forEach(phrase => {
+      const spriteText = createTextSprite(phrase);
+      const radius = Math.random() * 340 + 80;
+      const angle = Math.random() * Math.PI * 2;
+
+      spriteText.position.x = Math.cos(angle) * radius;
+      spriteText.position.z = Math.sin(angle) * radius;
+      spriteText.position.y = (Math.random() - 0.5) * 40;
+
+      textGroup.add(spriteText);
+    });
+
+    // 7. Bucle de Animación
+    let clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const elapsedTime = clock.getElapsedTime();
+
+      // Rotación suave de la galaxia
+      galaxyGroup.rotation.y += 0.0018;
+
+      // Latido constante del corazón azul e intensidad de luz neón
+      const pulse = 0.95 + Math.sin(elapsedTime * 3.5) * 0.08;
+      blueHeart3D.scale.set(pulse, pulse, pulse);
+      blueHeart3D.rotation.y += 0.012; // Giro dentro del cristal
+
+      // Pulso de luz interior
+      heartGlowLight.intensity = 4 + Math.sin(elapsedTime * 3.5) * 1.5;
+
+      controls.update();
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
